@@ -1,0 +1,2 @@
+/* Keep CRA defaults, plus ensure body fills height */
+html, body, #root { height: 100%; }

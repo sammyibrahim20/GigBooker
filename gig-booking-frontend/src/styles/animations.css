@@ -1,0 +1,8 @@
+.landing { animation: fadeIn 0.8s ease; }
+.choice-buttons { animation: slideUp 1s ease; display: flex; gap: 20px; margin-top: 20px; }
+
+.animated-button { transition: transform 0.15s ease, opacity 0.3s ease; }
+.animated-button:hover { transform: translateY(-1px); opacity: 0.95; }
+
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
