@@ -1,9 +1,8 @@
 # GigBooker — Band ↔ Venue Booking Platform
 
-A full‑stack web app where **venues post gigs** and **bands express interest**, used to coordinate **2+ live shows at UB**. Built with **React** on the frontend and **Spring Boot** on the backend, with clean repository/service layers and a REST API.
+A full‑stack web app where **venues post gigs** and **bands express interest**. Built with **React** on the frontend and **Spring Boot** on the backend, with clean repository/service layers and a REST API.
 
 ## ✨ Highlights
-- **Real usage:** Coordinated **2+ real shows at UB** (clubs/frats) using the app’s Band/Venue flows.
 - **Role-based UX:** Separate dashboards for Bands and Venues with focused actions.
 - **Fast browse + intent:** Venues publish gigs; Bands browse and “Show Interest.”
 - **MVP data model:** Bands, Venues, and Gigs (with upcoming/past filters).
@@ -183,5 +182,4 @@ MIT (or your preferred license).
 ---
 
 ## 🙌 Acknowledgments
-- UB clubs & organizers who piloted the app for **2+ live shows**.
 - React & Spring Boot communities.
