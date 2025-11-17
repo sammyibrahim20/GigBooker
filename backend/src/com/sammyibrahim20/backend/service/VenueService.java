@@ -1,5 +1,5 @@
 // VenueService.java
-package com.sammyibrahim20.backend.Service;
+package com.sammyibrahim20.backend.service;
 
 import com.sammyibrahim20.backend.model.Venue;
 import com.sammyibrahim20.backend.repository.VenueRepository;

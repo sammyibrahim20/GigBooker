@@ -1,5 +1,5 @@
 // BandService.java
-package com.sammyibrahim20.backend.Service;
+package com.sammyibrahim20.backend.service;
 
 import com.sammyibrahim20.backend.model.Band;
 import com.sammyibrahim20.backend.repository.BandRepository;

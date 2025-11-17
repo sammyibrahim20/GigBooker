@@ -5,12 +5,11 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Spring Boot parent -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.5</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
 
     <groupId>com.sammyibrahim20</groupId>
@@ -21,50 +20,49 @@
     <packaging>jar</packaging>
 
     <properties>
-        <!-- You’re using JDK 21 in IntelliJ; this is fine for Boot 3.2.x -->
         <java.version>21</java.version>
     </properties>
 
     <dependencies>
-        <!-- Web / REST controllers, JSON, etc. -->
+        <!-- Web / REST -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- JPA + Hibernate for Band/Gig/User/Venue entities & repositories -->
+        <!-- JPA / Hibernate -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- Optional: Thymeleaf templates (if you ever use templates/views) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
-
-        <!-- Bean validation annotations (@NotNull, @Email, etc.) -->
+        <!-- Validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- In-memory H2 database (with /h2-console if enabled) -->
+        <!-- (Optional) Thymeleaf templates -->
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- NEW: Postgres driver -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Lombok (if you’re using @Getter/@Setter/etc.) -->
+        <!-- Lombok (if you use it) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- Devtools for hot reload in dev -->
+        <!-- Devtools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -81,7 +79,7 @@
     </dependencies>
 
     <build>
-        <!-- IMPORTANT: tell Maven your Java source lives in /src, not src/main/java -->
+        <!-- Use backend/src as the source root -->
         <sourceDirectory>${project.basedir}/src</sourceDirectory>
 
         <plugins>
