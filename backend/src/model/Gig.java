@@ -1,4 +1,4 @@
-package com.sammyibrahim20.playground.model;
+package com.sammyibrahim20.backend.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

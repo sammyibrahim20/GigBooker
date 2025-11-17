@@ -1,4 +1,4 @@
-package com.sammyibrahim20.playground;
+package com.sammyibrahim20.backend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

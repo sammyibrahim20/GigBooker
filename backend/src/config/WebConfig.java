@@ -1,4 +1,4 @@
-package com.sammyibrahim20.playground.config;
+package com.sammyibrahim20.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

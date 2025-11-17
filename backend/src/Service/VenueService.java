@@ -1,8 +1,8 @@
 // VenueService.java
-package com.sammyibrahim20.playground.Service;
+package com.sammyibrahim20.backend.Service;
 
-import com.sammyibrahim20.playground.model.Venue;
-import com.sammyibrahim20.playground.repository.VenueRepository;
+import com.sammyibrahim20.backend.model.Venue;
+import com.sammyibrahim20.backend.repository.VenueRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

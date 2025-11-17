@@ -1,6 +1,6 @@
-package com.sammyibrahim20.playground.repository;
+package com.sammyibrahim20.backend.repository;
 
-import com.sammyibrahim20.playground.model.Venue;
+import com.sammyibrahim20.backend.model.Venue;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

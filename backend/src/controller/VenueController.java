@@ -1,7 +1,7 @@
-package com.sammyibrahim20.playground.controller;
+package com.sammyibrahim20.backend.controller;
 
-import com.sammyibrahim20.playground.model.Venue;
-import com.sammyibrahim20.playground.repository.VenueRepository;
+import com.sammyibrahim20.backend.model.Venue;
+import com.sammyibrahim20.backend.repository.VenueRepository;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 

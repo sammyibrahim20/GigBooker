@@ -1,11 +1,11 @@
-package com.sammyibrahim20.playground.controller;
+package com.sammyibrahim20.backend.controller;
 
-import com.sammyibrahim20.playground.model.Venue;
-import com.sammyibrahim20.playground.model.Gig;
-import com.sammyibrahim20.playground.model.Band;
-import com.sammyibrahim20.playground.repository.BandRepository;
-import com.sammyibrahim20.playground.repository.GigRepository;
-import com.sammyibrahim20.playground.repository.VenueRepository;
+import com.sammyibrahim20.backend.model.Venue;
+import com.sammyibrahim20.backend.model.Gig;
+import com.sammyibrahim20.backend.model.Band;
+import com.sammyibrahim20.backend.repository.BandRepository;
+import com.sammyibrahim20.backend.repository.GigRepository;
+import com.sammyibrahim20.backend.repository.VenueRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

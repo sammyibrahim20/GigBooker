@@ -1,8 +1,8 @@
 // GigService.java
-package com.sammyibrahim20.playground.Service;
+package com.sammyibrahim20.backend.Service;
 
-import com.sammyibrahim20.playground.model.Gig;
-import com.sammyibrahim20.playground.repository.GigRepository;
+import com.sammyibrahim20.backend.model.Gig;
+import com.sammyibrahim20.backend.repository.GigRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
