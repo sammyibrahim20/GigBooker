@@ -4,7 +4,6 @@
 A full-stack web app where **venues post gigs** and **bands express interest**.
 
 - **Live app (frontend):** https://gigbooker-1.onrender.com  
-- **Production API (backend):** https://gigbooker-docker.onrender.com  
 
 The frontend is a React single-page app hosted on **Render Static Sites**.  
 The backend is a **Spring Boot** REST API packaged as a Docker image and deployed as a **Render Web Service**, backed by a managed **PostgreSQL** instance on Render.
