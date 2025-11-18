@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8080", // backend root
+  baseURL: "https://gigbooker-docker.onrender.com", // backend root
   timeout: 15000,
 });
 
