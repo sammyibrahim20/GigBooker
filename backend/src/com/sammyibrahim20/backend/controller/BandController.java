@@ -7,7 +7,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/bands")
-@CrossOrigin(origins = "http://localhost:3000") // React frontend
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "https://gigbooker-1.onrender.com"
+})
 public class BandController {
     private final BandRepository bandRepository;
     public BandController(BandRepository bandRepository) {
