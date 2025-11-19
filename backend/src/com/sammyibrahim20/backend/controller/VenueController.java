@@ -7,7 +7,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/venues")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "https://gigbooker-1.onrender.com"
+})
 public class VenueController {
     private final VenueRepository venueRepository;
     public VenueController(VenueRepository venueRepository) {

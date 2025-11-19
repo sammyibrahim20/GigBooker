@@ -13,7 +13,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/gigs")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "https://gigbooker-1.onrender.com"
+})
 public class GigController {
 
     private final GigRepository gigRepository;
