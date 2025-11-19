@@ -101,3 +101,66 @@
   /* Utilities */
   .muted { color: var(--muted); }
   
+  /* somewhere in your main CSS (e.g., App.css or globals.css) */
+
+.landing-header {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.landing-main {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.login-card {
+  background: #0b1530;
+  border-radius: 16px;
+  padding: 2rem 2.5rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.choice-buttons {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.primary-btn,
+.secondary-btn,
+.text-btn {
+  border-radius: 999px;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.primary-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.secondary-btn {
+  background: transparent;
+  border: 1px solid #4b5563;
+  color: #e5e7eb;
+}
+
+.text-btn {
+  background: transparent;
+  color: #60a5fa;
+  padding: 0.25rem 0.5rem;
+}
+
+.signup-row {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
