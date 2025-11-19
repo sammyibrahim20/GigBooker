@@ -1,57 +1,184 @@
-// src/pages/HomePage.jsx
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/animations.css";
+import api from "../services/api"; // axios instance
 
 export default function HomePage() {
   const navigate = useNavigate();
 
-  const goBandLogin = () => navigate("/band");
-  const goVenueLogin = () => navigate("/venue");
-  const goSignup = () => navigate("/signup");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      // Assumes backend login endpoint:
+      // POST /api/users/login  ->  { username, password }  returns user with "role"
+      const res = await api.post("/api/users/login", { username, password });
+      const role = res.data.role;
+
+      if (role === "BAND") {
+        navigate("/band");
+      } else if (role === "VENUE") {
+        navigate("/venue");
+      } else {
+        setError("Unknown account type. Please contact support.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError(
+        err.response?.data?.message ||
+          "Login failed. Check your username/password and try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="landing">
-      {/* Simple header instead of Navbar (no Band/Venue tabs) */}
-      <header className="landing-header">
-        <h1 className="title">GigBooker</h1>
-        <p className="subtitle">Connect bands with venues — fast.</p>
-      </header>
+    // No <Navbar /> here – clean landing page
+    <div
+      className="landing"
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "2rem",
+      }}
+    >
+      <h1 className="title" style={{ marginBottom: "0.5rem" }}>
+        GigBooking
+      </h1>
+      <p className="subtitle" style={{ marginBottom: "2rem" }}>
+        Sign in to manage your gigs and bookings.
+      </p>
 
-      <main className="landing-main">
-        <div className="login-card">
-          <h2 className="login-title">Sign in</h2>
-          <p className="login-subtitle">Choose how you want to log in.</p>
-
-          <div className="choice-buttons">
-            <button
-              type="button"
-              className="primary-btn"
-              onClick={goBandLogin}
-            >
-              I&apos;m a Band
-            </button>
-
-            <button
-              type="button"
-              className="secondary-btn"
-              onClick={goVenueLogin}
-            >
-              I&apos;m a Venue
-            </button>
-          </div>
-
-          <div className="signup-row">
-            <span>New to GigBooker?</span>
-            <button
-              type="button"
-              className="text-btn"
-              onClick={goSignup}
-            >
-              Sign up here
-            </button>
-          </div>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          background: "rgba(10, 23, 55, 0.9)",
+          borderRadius: 16,
+          padding: "2rem",
+          boxShadow: "0 18px 40px rgba(0,0,0,0.4)",
+          border: "1px solid rgba(255,255,255,0.05)",
+        }}
+      >
+        <div style={{ marginBottom: "1.25rem" }}>
+          <label
+            htmlFor="username"
+            style={{ display: "block", marginBottom: 8, fontWeight: 500 }}
+          >
+            Username
+          </label>
+          <input
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            style={{
+              width: "100%",
+              padding: "0.6rem 0.8rem",
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(15, 23, 42, 0.9)",
+              color: "white",
+            }}
+          />
         </div>
-      </main>
+
+        <div style={{ marginBottom: "1.5rem" }}>
+          <label
+            htmlFor="password"
+            style={{ display: "block", marginBottom: 8, fontWeight: 500 }}
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{
+              width: "100%",
+              padding: "0.6rem 0.8rem",
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.2)",
+              background: "rgba(15, 23, 42, 0.9)",
+              color: "white",
+            }}
+          />
+        </div>
+
+        {error && (
+          <div
+            style={{
+              marginBottom: "1rem",
+              padding: "0.6rem 0.8rem",
+              borderRadius: 8,
+              background: "rgba(239, 68, 68, 0.12)",
+              color: "#fecaca",
+              fontSize: "0.9rem",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          style={{
+            width: "100%",
+            padding: "0.75rem",
+            borderRadius: 999,
+            border: "none",
+            fontWeight: 600,
+            fontSize: "1rem",
+            cursor: "pointer",
+            background:
+              "linear-gradient(135deg, rgba(59,130,246,1), rgba(56,189,248,1))",
+            color: "white",
+            opacity: isLoading ? 0.7 : 1,
+          }}
+        >
+          {isLoading ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
+
+      <p
+        style={{
+          marginTop: "1.5rem",
+          fontSize: "0.95rem",
+          color: "rgba(241,245,249,0.9)",
+        }}
+      >
+        New to GigBooker?{" "}
+        <button
+          type="button"
+          onClick={() => navigate("/signup")}
+          style={{
+            border: "none",
+            background: "transparent",
+            color: "#60a5fa",
+            fontWeight: 600,
+            cursor: "pointer",
+            textDecoration: "underline",
+          }}
+        >
+          Sign up here!
+        </button>
+      </p>
     </div>
   );
 }
