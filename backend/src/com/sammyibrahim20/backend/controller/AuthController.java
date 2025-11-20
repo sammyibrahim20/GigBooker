@@ -6,8 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = {
@@ -22,55 +23,71 @@ public class AuthController {
         this.userRepository = userRepository;
     }
 
-    // ---------- SIGN UP ----------
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody User incoming) {
-        if (userRepository.existsByUsername(incoming.getUsername())) {
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
+        String username = trimOrNull(body.get("username"));
+        String email = trimOrNull(body.get("email"));
+        String password = trimOrNull(body.get("password"));
+        String role = trimOrNull(body.get("role"));
+
+        if (username == null || email == null || password == null || role == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Missing required fields"));
+        }
+
+        if (userRepository.existsByUsername(username)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "Username already taken"));
         }
 
-        // ⚠️ For real production you should hash the password with BCrypt.
-        // For now we just save it as-is so it's easy to wire up.
         User user = new User();
-        user.setUsername(incoming.getUsername());
-        user.setPassword(incoming.getPassword());
-        user.setRole(incoming.getRole()); // "BAND" or "VENUE"
+        user.setUsername(username);
+        user.setEmail(email);
+        // For a real app you should hash this!
+        user.setPassword(password);
+        user.setRole(role.toUpperCase()); // "BAND" or "VENUE"
 
-        User saved = userRepository.save(user);
+        userRepository.save(user);
 
-        // Don't send password back
-        return ResponseEntity.ok(Map.of(
-                "id", saved.getId(),
-                "username", saved.getUsername(),
-                "role", saved.getRole()
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "id", user.getId(),
+                "username", user.getUsername(),
+                "role", user.getRole()
         ));
     }
 
-    // ---------- LOGIN ----------
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        String password = body.get("password");
+        String username = trimOrNull(body.get("username"));
+        String password = trimOrNull(body.get("password"));
 
-        return userRepository.findByUsername(username)
-                .map(user -> {
-                    if (!user.getPassword().equals(password)) {
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                .body(Map.of("message", "Invalid credentials"));
-                    }
+        if (username == null || password == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Missing username or password"));
+        }
 
-                    // success
-                    return ResponseEntity.ok(Map.of(
-                            "id", user.getId(),
-                            "username", user.getUsername(),
-                            "role", user.getRole()
-                    ));
-                })
-                .orElseGet(() ->
-                        ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                .body(Map.of("message", "Invalid credentials"))
-                );
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid credentials"));
+        }
+
+        User user = optionalUser.get();
+        if (!password.equals(user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid credentials"));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "id", user.getId(),
+                "username", user.getUsername(),
+                "role", user.getRole()
+        ));
+    }
+
+    private String trimOrNull(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
     }
 }

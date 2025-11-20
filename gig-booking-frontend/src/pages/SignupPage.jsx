@@ -26,6 +26,8 @@ export default function SignupPage() {
     description: "",
   });
 
+  const [password, setPassword] = useState("");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -55,10 +57,14 @@ export default function SignupPage() {
 
     const payload = role === ROLE_BAND ? bandForm : venueForm;
 
-    // basic validation
+    // basic validation: all visible fields + password must be filled
     const missing = Object.entries(payload)
       .filter(([_, v]) => !v || v.trim() === "")
       .map(([k]) => k);
+
+    if (!password || password.trim() === "") {
+      missing.push("password");
+    }
 
     if (missing.length > 0) {
       setError("Please fill in all fields before continuing.");
@@ -67,9 +73,15 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     try {
-      const endpoint = role === ROLE_BAND ? "/api/bands" : "/api/venues";
+      // this is what the backend actually cares about
+      const registerPayload = {
+        username: payload.username.trim(),
+        email: payload.email.trim(),
+        password: password.trim(),
+        role,
+      };
 
-      await api.post(endpoint, payload);
+      await api.post("/api/auth/register", registerPayload);
 
       setSuccessMsg(
         role === ROLE_BAND
@@ -77,15 +89,32 @@ export default function SignupPage() {
           : "Venue account created! You can now log in as a venue."
       );
 
+      // reset local form state
+      setPassword("");
+      setBandForm({
+        username: "",
+        email: "",
+        genre: "",
+        members: "",
+        links: "",
+      });
+      setVenueForm({
+        username: "",
+        email: "",
+        companyName: "",
+        contact: "",
+        description: "",
+      });
+
       // redirect after a short delay
       setTimeout(() => {
-        navigate("/"); // or "/login" if you have a login page
+        navigate("/"); // or navigate("/login") if you add a login page
       }, 1500);
     } catch (err) {
       console.error(err);
       const msg =
-        err.response?.data?.message ||
-        err.response?.data ||
+        err?.response?.data?.message ||
+        err?.response?.data ||
         "Unable to create account. Please try again.";
       setError(msg);
     } finally {
@@ -238,7 +267,9 @@ export default function SignupPage() {
               value={currentForm.username}
               onChange={handleChange}
               placeholder={
-                role === ROLE_BAND ? "e.g., The GigBookers" : "e.g., Alex at Soho Bar"
+                role === ROLE_BAND
+                  ? "e.g., The GigBookers"
+                  : "e.g., Alex at Soho Bar"
               }
               style={inputStyle}
             />
@@ -255,6 +286,25 @@ export default function SignupPage() {
               value={currentForm.email}
               onChange={handleChange}
               placeholder="you@example.com"
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle} htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+                setSuccessMsg("");
+              }}
+              placeholder="Create a password"
               style={inputStyle}
             />
           </div>
