@@ -19,7 +19,7 @@ export default function HomePage() {
     try {
       // Assumes backend login endpoint:
       // POST /api/users/login  ->  { username, password }  returns user with "role"
-      const res = await api.post("/api/users/login", { username, password });
+      const res = await api.post("/api/auth/login", { username, password });
       const role = res.data.role;
 
       if (role === "BAND") {
