@@ -2,45 +2,34 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "../services/api.js";
 
 /**
- * API Endpoints (Spring Boot backend):
- *
- * Bands:
- *  - GET  /api/bands
- *  - POST /api/bands
- *
- * Venues:
- *  - GET  /api/venues
- *  - POST /api/venues
- *
- * Gigs:
- *  - GET  /gigs
- *  - POST /gigs                 (body must include venue: { id })
- *  - GET  /gigs/venue/{venueId}
- *  - POST /gigs/{gigId}/interest/{bandId}
- *  - GET  /gigs/{gigId}/interested-bands
+ * Central app state: bands, venues, gigs, auth, and toasts.
  */
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
+  // ---- Auth state ----
   const [currentBand, setCurrentBand] = useState(null);
   const [currentVenue, setCurrentVenue] = useState(null);
 
+  // ---- Data ----
   const [bands, setBands] = useState([]);
   const [venues, setVenues] = useState([]);
   const [gigs, setGigs] = useState([]);
   const [interests, setInterests] = useState({}); // { gigId: [bands...] }
 
+  // ---- UI ----
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null); // { type, message }
 
-  // Toast helper
+  // Simple toast helper
   const showToast = (type, message) => {
+    if (!message) return;
     setToast({ type, message });
     setTimeout(() => setToast(null), 3500);
   };
 
-  // Wrapper for API calls with error handling
+  // Wrapper for API calls with global loading + error toasts
   const safe = async (fn, successMsg) => {
     try {
       setLoading(true);
@@ -59,7 +48,9 @@ export function AppProvider({ children }) {
     }
   };
 
-  // --- Band actions ---
+  // -----------------------
+  // Band actions
+  // -----------------------
   const refreshBands = async () => {
     const { data } = await safe(() => api.get("/api/bands"));
     setBands(data || []);
@@ -67,12 +58,17 @@ export function AppProvider({ children }) {
   };
 
   const createBand = async (band) => {
-    const { data } = await safe(() => api.post("/api/bands", band), "Band created");
+    const { data } = await safe(
+      () => api.post("/api/bands", band),
+      "Band created"
+    );
     setBands((prev) => [...prev, data]);
     return data;
   };
 
-  // --- Venue actions ---
+  // -----------------------
+  // Venue actions
+  // -----------------------
   const refreshVenues = async () => {
     const { data } = await safe(() => api.get("/api/venues"));
     setVenues(data || []);
@@ -80,12 +76,17 @@ export function AppProvider({ children }) {
   };
 
   const createVenue = async (venue) => {
-    const { data } = await safe(() => api.post("/api/venues", venue), "Venue created");
+    const { data } = await safe(
+      () => api.post("/api/venues", venue),
+      "Venue created"
+    );
     setVenues((prev) => [...prev, data]);
     return data;
   };
 
-  // --- Gig actions ---
+  // -----------------------
+  // Gig actions
+  // -----------------------
   const refreshGigs = async () => {
     const { data } = await safe(() => api.get("/gigs"));
     setGigs(data || []);
@@ -102,7 +103,9 @@ export function AppProvider({ children }) {
   };
 
   const createGig = async ({ capacity, location, price, date }) => {
-    if (!currentVenue) throw new Error("You must be signed in as a venue.");
+    if (!currentVenue) {
+      throw new Error("You must be signed in as a venue.");
+    }
 
     const payload = {
       capacity: Number(capacity),
@@ -112,13 +115,18 @@ export function AppProvider({ children }) {
       venue: { id: currentVenue.id }, // backend expects nested venue object
     };
 
-    const { data } = await safe(() => api.post("/gigs", payload), "Gig created");
+    const { data } = await safe(
+      () => api.post("/gigs", payload),
+      "Gig created"
+    );
     setGigs((prev) => [...prev, data]);
     return data;
   };
 
   const showInterestInGig = async (gigId) => {
-    if (!currentBand) throw new Error("You must be signed in as a band.");
+    if (!currentBand) {
+      throw new Error("You must be signed in as a band.");
+    }
     await safe(
       () => api.post(`/gigs/${gigId}/interest/${currentBand.id}`),
       "Interest sent"
@@ -127,46 +135,90 @@ export function AppProvider({ children }) {
   };
 
   const loadGigInterests = async (gigId) => {
-    const { data } = await safe(() => api.get(`/gigs/${gigId}/interested-bands`));
+    const { data } = await safe(() =>
+      api.get(`/gigs/${gigId}/interested-bands`)
+    );
     setInterests((prev) => ({ ...prev, [gigId]: data || [] }));
     return data;
   };
 
+  // -----------------------
+  // Sign in / sign out
+  // -----------------------
+
   const signInBand = async (username) => {
-    let band = bands.find((b) => b.username === username);
-  
-    if (!band) {
-      // Auto-create the band if it doesn't exist
-      const payload = { username, email: `${username}@example.com` };
-      const { data } = await safe(() => api.post("/api/bands", payload), "Band created");
-      band = data;
-      setBands((prev) => [...prev, band]);
+    const trimmed = (username || "").trim();
+    if (!trimmed) {
+      showToast("error", "Please enter a band username.");
+      return null;
     }
-  
+
+    // Ensure we have the latest bands (important after signup)
+    let allBands = bands;
+    if (!allBands || allBands.length === 0) {
+      try {
+        allBands = (await refreshBands()) || [];
+      } catch {
+        // refreshBands already showed an error toast
+        return null;
+      }
+    }
+
+    const lower = trimmed.toLowerCase();
+    const band =
+      allBands.find(
+        (b) => (b.username || "").toLowerCase() === lower
+      ) || null;
+
+    if (!band) {
+      showToast(
+        "error",
+        `Band "${trimmed}" was not found. Make sure you've created it on the signup page.`
+      );
+      return null;
+    }
+
     setCurrentBand(band);
     setCurrentVenue(null);
     showToast("success", `Signed in as ${band.username}`);
     return band;
   };
-  
 
   const signInVenue = async (username) => {
-    let venue = venues.find((v) => v.username === username);
-  
-    if (!venue) {
-      // Auto-create venue if not found
-      const payload = { username, email: `${username}@example.com` };
-      const { data } = await safe(() => api.post("/api/venues", payload), "Venue created");
-      venue = data;
-      setVenues((prev) => [...prev, venue]);
+    const trimmed = (username || "").trim();
+    if (!trimmed) {
+      showToast("error", "Please enter a venue username.");
+      return null;
     }
-  
+
+    let allVenues = venues;
+    if (!allVenues || allVenues.length === 0) {
+      try {
+        allVenues = (await refreshVenues()) || [];
+      } catch {
+        return null;
+      }
+    }
+
+    const lower = trimmed.toLowerCase();
+    const venue =
+      allVenues.find(
+        (v) => (v.username || "").toLowerCase() === lower
+      ) || null;
+
+    if (!venue) {
+      showToast(
+        "error",
+        `Venue "${trimmed}" was not found. Create it on the signup page first.`
+      );
+      return null;
+    }
+
     setCurrentVenue(venue);
     setCurrentBand(null);
     showToast("success", `Signed in as ${venue.username}`);
     return venue;
   };
-  
 
   const signOut = () => {
     setCurrentBand(null);
@@ -174,13 +226,21 @@ export function AppProvider({ children }) {
     showToast("info", "Signed out");
   };
 
-  // --- Initial load ---
+  // -----------------------
+  // Initial load
+  // -----------------------
   useEffect(() => {
     (async () => {
-      await Promise.allSettled([refreshBands(), refreshVenues(), refreshGigs()]);
+      await Promise.allSettled([
+        refreshBands(),
+        refreshVenues(),
+        refreshGigs(),
+      ]);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Memoized context value
   const value = useMemo(
     () => ({
       // auth
@@ -226,9 +286,7 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider value={value}>
       {toast && (
-        <div className={`toast toast-${toast.type}`}>
-          {toast.message}
-        </div>
+        <div className={`toast toast-${toast.type}`}>{toast.message}</div>
       )}
       {children}
     </AppContext.Provider>
