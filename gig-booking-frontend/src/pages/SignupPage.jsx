@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api"; // axios instance
+import { useAppContext } from "../context/AppContext.jsx";
 
 const ROLE_BAND = "BAND";
 const ROLE_VENUE = "VENUE";
 
 export default function SignupPage() {
   const navigate = useNavigate();
-
+  const { signInBand, signInVenue } = useAppContext();
   const [role, setRole] = useState(ROLE_BAND);
 
   const [bandForm, setBandForm] = useState({
@@ -57,14 +58,10 @@ export default function SignupPage() {
 
     const payload = role === ROLE_BAND ? bandForm : venueForm;
 
-    // basic validation: all visible fields + password must be filled
+    // basic validation
     const missing = Object.entries(payload)
       .filter(([_, v]) => !v || v.trim() === "")
       .map(([k]) => k);
-
-    if (!password || password.trim() === "") {
-      missing.push("password");
-    }
 
     if (missing.length > 0) {
       setError("Please fill in all fields before continuing.");
@@ -73,43 +70,27 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
     try {
-      // this is what the backend actually cares about
-      const registerPayload = {
-        username: payload.username.trim(),
-        email: payload.email.trim(),
-        password: password.trim(),
-        role,
-      };
+      const endpoint = role === ROLE_BAND ? "/api/bands" : "/api/venues";
 
-      await api.post("/api/auth/register", registerPayload);
+      // 1) create band or venue in backend
+      await api.post(endpoint, payload);
 
-      setSuccessMsg(
-        role === ROLE_BAND
-          ? "Band account created! You can now log in as a band."
-          : "Venue account created! You can now log in as a venue."
-      );
+      const username = payload.username.trim();
 
-      // reset local form state
-      setPassword("");
-      setBandForm({
-        username: "",
-        email: "",
-        genre: "",
-        members: "",
-        links: "",
-      });
-      setVenueForm({
-        username: "",
-        email: "",
-        companyName: "",
-        contact: "",
-        description: "",
-      });
-
-      // redirect after a short delay
-      setTimeout(() => {
-        navigate("/"); // or navigate("/login") if you add a login page
-      }, 1500);
+      // 2) auto sign in using the same helpers the dashboards use
+      try {
+        if (role === ROLE_BAND) {
+          await signInBand(username);
+          navigate("/band");
+        } else {
+          await signInVenue(username);
+          navigate("/venue");
+        }
+      } catch (signInErr) {
+        console.error("Auto sign-in after signup failed", signInErr);
+        // fall back to just sending them to the dashboard
+        navigate(role === ROLE_BAND ? "/band" : "/venue");
+      }
     } catch (err) {
       console.error(err);
       const msg =
@@ -121,6 +102,7 @@ export default function SignupPage() {
       setIsSubmitting(false);
     }
   };
+
 
   const currentForm = role === ROLE_BAND ? bandForm : venueForm;
 
