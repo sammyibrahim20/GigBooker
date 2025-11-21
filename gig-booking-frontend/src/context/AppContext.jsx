@@ -237,9 +237,9 @@ export function AppProvider({ children }) {
         const { username, role } = JSON.parse(authData);
         
         if (role === "BAND") {
-          await signInBand(username);
+          return await signInBand(username);
         } else if (role === "VENUE") {
-          await signInVenue(username);
+          return await signInVenue(username);
         }
       }
     } catch (err) {
@@ -247,6 +247,7 @@ export function AppProvider({ children }) {
       // Clear invalid auth data
       localStorage.removeItem('gigbooker_auth');
     }
+    return null;
   };
 
   // -----------------------
@@ -254,6 +255,7 @@ export function AppProvider({ children }) {
   // -----------------------
   useEffect(() => {
     (async () => {
+      // Load data first
       await Promise.allSettled([
         refreshBands(),
         refreshVenues(),
@@ -266,8 +268,8 @@ export function AppProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Memoized context value
-  const value = useMemo(
+  // Expose autoLogin for use after signup
+  const contextValue = useMemo(
     () => ({
       // auth
       currentBand,
@@ -275,6 +277,7 @@ export function AppProvider({ children }) {
       signInBand,
       signInVenue,
       signOut,
+      autoLogin, // Add this for signup to use
 
       // data
       bands,
@@ -310,7 +313,7 @@ export function AppProvider({ children }) {
   );
 
   return (
-    <AppContext.Provider value={value}>
+    <AppContext.Provider value={contextValue}>
       {toast && (
         <div className={`toast toast-${toast.type}`}>{toast.message}</div>
       )}

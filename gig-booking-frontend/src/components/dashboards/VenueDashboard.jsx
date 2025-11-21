@@ -54,9 +54,13 @@ export default function VenueDashboard() {
     loadGigInterests,
     loading,
   } = useAppContext();
+  
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     refreshBands();
+    // Give some time for authentication to complete
+    setTimeout(() => setIsInitializing(false), 1000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -80,7 +84,13 @@ export default function VenueDashboard() {
       <div className="page">
         <h1>Venue Dashboard</h1>
 
-        {!currentVenue && <VenueSignInInline />}
+        {isInitializing && (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p>Loading your dashboard...</p>
+          </div>
+        )}
+
+        {!isInitializing && !currentVenue && <VenueSignInInline />}
 
         {currentVenue && (
           <>

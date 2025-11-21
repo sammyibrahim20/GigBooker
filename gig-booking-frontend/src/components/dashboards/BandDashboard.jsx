@@ -50,10 +50,14 @@ export default function BandDashboard() {
     showInterestInGig,
     loading,
   } = useAppContext();
+  
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     // Load gigs on first mount
     refreshGigs();
+    // Give some time for authentication to complete
+    setTimeout(() => setIsInitializing(false), 1000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -72,7 +76,13 @@ export default function BandDashboard() {
       <div className="page">
         <h1>Band Dashboard</h1>
 
-        {!currentBand && <BandSignInInline />}
+        {isInitializing && (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p>Loading your dashboard...</p>
+          </div>
+        )}
+
+        {!isInitializing && !currentBand && <BandSignInInline />}
 
         {currentBand && (
           <>
