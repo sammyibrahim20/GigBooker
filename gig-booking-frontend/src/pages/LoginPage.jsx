@@ -17,10 +17,16 @@ export default function HomePage() {
     setIsLoading(true);
 
     try {
-      // Assumes backend login endpoint:
-      // POST /api/users/login  ->  { username, password }  returns user with "role"
+      // Authenticate with backend
       const res = await api.post("/api/auth/login", { username, password });
-      const role = res.data.role;
+      const { role, username: authenticatedUsername } = res.data;
+
+      // Store authentication data in localStorage for session persistence
+      localStorage.setItem('gigbooker_auth', JSON.stringify({
+        username: authenticatedUsername,
+        role: role,
+        loginTime: new Date().toISOString()
+      }));
 
       if (role === "BAND") {
         navigate("/band");

@@ -223,7 +223,30 @@ export function AppProvider({ children }) {
   const signOut = () => {
     setCurrentBand(null);
     setCurrentVenue(null);
+    localStorage.removeItem('gigbooker_auth');
     showToast("info", "Signed out");
+  };
+
+  // -----------------------
+  // Auto-login from stored session
+  // -----------------------
+  const autoLogin = async () => {
+    try {
+      const authData = localStorage.getItem('gigbooker_auth');
+      if (authData) {
+        const { username, role } = JSON.parse(authData);
+        
+        if (role === "BAND") {
+          await signInBand(username);
+        } else if (role === "VENUE") {
+          await signInVenue(username);
+        }
+      }
+    } catch (err) {
+      console.error("Auto-login failed:", err);
+      // Clear invalid auth data
+      localStorage.removeItem('gigbooker_auth');
+    }
   };
 
   // -----------------------
@@ -236,6 +259,9 @@ export function AppProvider({ children }) {
         refreshVenues(),
         refreshGigs(),
       ]);
+      
+      // Try to auto-login after data is loaded
+      await autoLogin();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

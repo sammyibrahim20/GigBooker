@@ -63,7 +63,7 @@ export default function SignupPage() {
       .filter(([_, v]) => !v || v.trim() === "")
       .map(([k]) => k);
 
-    if (missing.length > 0) {
+    if (missing.length > 0 || !password.trim()) {
       setError("Please fill in all fields before continuing.");
       return;
     }
@@ -72,12 +72,25 @@ export default function SignupPage() {
     try {
       const endpoint = role === ROLE_BAND ? "/api/bands" : "/api/venues";
 
-      // 1) create band or venue in backend
-      await api.post(endpoint, payload);
+      // Include password in the payload
+      const fullPayload = {
+        ...payload,
+        password: password.trim()
+      };
+
+      // 1) create band or venue in backend (this now also creates the User for auth)
+      await api.post(endpoint, fullPayload);
 
       const username = payload.username.trim();
 
-      // 2) auto sign in using the same helpers the dashboards use
+      // 2) Store authentication data for session persistence
+      localStorage.setItem('gigbooker_auth', JSON.stringify({
+        username: username,
+        role: role,
+        loginTime: new Date().toISOString()
+      }));
+
+      // 3) auto sign in using the same helpers the dashboards use
       try {
         if (role === ROLE_BAND) {
           await signInBand(username);
