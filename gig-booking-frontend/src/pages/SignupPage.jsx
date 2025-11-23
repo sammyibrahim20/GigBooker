@@ -8,7 +8,7 @@ const ROLE_VENUE = "VENUE";
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const { signInBand, signInVenue, autoLogin } = useAppContext();
+  const { signInBand, signInVenue, refreshBands, refreshVenues } = useAppContext();
   const [role, setRole] = useState(ROLE_BAND);
 
   const [bandForm, setBandForm] = useState({
@@ -69,6 +69,10 @@ export default function SignupPage() {
     }
 
     setIsSubmitting(true);
+    
+    // Clear any existing auth data first to prevent conflicts
+    localStorage.removeItem('gigbooker_auth');
+    
     try {
       const endpoint = role === ROLE_BAND ? "/api/bands" : "/api/venues";
 
@@ -78,42 +82,40 @@ export default function SignupPage() {
         password: password.trim()
       };
 
-      // 1) create band or venue in backend (this now also creates the User for auth)
-      await api.post(endpoint, fullPayload);
-
       const username = payload.username.trim();
 
-      // 2) Store authentication data for session persistence
+      // 1) Create band or venue in backend (this now also creates the User for auth)
+      await api.post(endpoint, fullPayload);
+
+      // 2) Refresh the bands/venues list to include the newly created account
+      if (role === ROLE_BAND) {
+        await refreshBands();
+      } else {
+        await refreshVenues();
+      }
+
+      // 3) Sign in the newly created user explicitly
+      let authenticatedUser = null;
+      if (role === ROLE_BAND) {
+        authenticatedUser = await signInBand(username);
+      } else {
+        authenticatedUser = await signInVenue(username);
+      }
+
+      if (!authenticatedUser) {
+        setError("Account created but sign-in failed. Please try logging in manually.");
+        return;
+      }
+
+      // 4) Store authentication data for session persistence
       localStorage.setItem('gigbooker_auth', JSON.stringify({
         username: username,
         role: role,
         loginTime: new Date().toISOString()
       }));
 
-      // 3) Force refresh of bands/venues data and auto sign in
-      try {
-        // Use autoLogin to ensure proper authentication state
-        const authenticatedUser = await autoLogin();
-        
-        if (authenticatedUser) {
-          // Successfully authenticated, navigate to dashboard
-          navigate(role === ROLE_BAND ? "/band" : "/venue");
-        } else {
-          // Fallback: try manual sign in
-          if (role === ROLE_BAND) {
-            await signInBand(username);
-            navigate("/band");
-          } else {
-            await signInVenue(username);
-            navigate("/venue");
-          }
-        }
-      } catch (signInErr) {
-        console.error("Auto sign-in after signup failed", signInErr);
-        // Clear the auth data and show error
-        localStorage.removeItem('gigbooker_auth');
-        setError("Account created but sign-in failed. Please try logging in manually.");
-      }
+      // 5) Navigate to the appropriate dashboard
+      navigate(role === ROLE_BAND ? "/band" : "/venue");
     } catch (err) {
       console.error(err);
       const msg =
@@ -121,6 +123,8 @@ export default function SignupPage() {
         err?.response?.data ||
         "Unable to create account. Please try again.";
       setError(msg);
+      // Clear auth data on error
+      localStorage.removeItem('gigbooker_auth');
     } finally {
       setIsSubmitting(false);
     }

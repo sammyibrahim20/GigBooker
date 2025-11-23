@@ -18,6 +18,9 @@ export default function HomePage() {
     setError("");
     setIsLoading(true);
 
+    // Clear any existing auth data first
+    localStorage.removeItem('gigbooker_auth');
+
     try {
       // Authenticate with backend
       const res = await api.post("/api/auth/login", { username, password });
@@ -25,25 +28,44 @@ export default function HomePage() {
       const normalizedRole = (role || "").toUpperCase();
       const usernameToUse = authenticatedUsername || username;
 
+      if (!normalizedRole || (normalizedRole !== "BAND" && normalizedRole !== "VENUE")) {
+        setError("Unknown account type. Please contact support.");
+        setIsLoading(false);
+        return;
+      }
+
       // Store authentication data in localStorage for session persistence
       localStorage.setItem('gigbooker_auth', JSON.stringify({
-        username: authenticatedUsername,
+        username: usernameToUse,
         role: normalizedRole,
         loginTime: new Date().toISOString()
       }));
 
       // Sync global auth state so dashboards load immediately
+      let authenticated = false;
       if (normalizedRole === "BAND") {
         const band = await signInBand(usernameToUse);
-        if (band) navigate("/band");
+        authenticated = !!band;
+        if (authenticated) {
+          navigate("/band");
+        }
       } else if (normalizedRole === "VENUE") {
         const venue = await signInVenue(usernameToUse);
-        if (venue) navigate("/venue");
-      } else {
-        setError("Unknown account type. Please contact support.");
+        authenticated = !!venue;
+        if (authenticated) {
+          navigate("/venue");
+        }
+      }
+
+      if (!authenticated) {
+        // Clear auth data if sign-in failed
+        localStorage.removeItem('gigbooker_auth');
+        setError("Login successful but could not load your account. Please try again.");
       }
     } catch (err) {
       console.error(err);
+      // Clear auth data on error
+      localStorage.removeItem('gigbooker_auth');
       setError(
         err.response?.data?.message ||
           "Login failed. Check your username/password and try again."

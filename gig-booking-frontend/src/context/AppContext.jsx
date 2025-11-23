@@ -153,6 +153,10 @@ export function AppProvider({ children }) {
       return null;
     }
 
+    // Clear any existing auth state first
+    setCurrentBand(null);
+    setCurrentVenue(null);
+
     // Ensure we have the latest bands (important after signup)
     let allBands = bands;
     if (!allBands || allBands.length === 0) {
@@ -190,6 +194,10 @@ export function AppProvider({ children }) {
       showToast("error", "Please enter a venue username.");
       return null;
     }
+
+    // Clear any existing auth state first
+    setCurrentBand(null);
+    setCurrentVenue(null);
 
     let allVenues = venues;
     if (!allVenues || allVenues.length === 0) {
@@ -236,9 +244,12 @@ export function AppProvider({ children }) {
       if (authData) {
         const { username, role } = JSON.parse(authData);
         
+        // Refresh the relevant data first to ensure we have the latest
         if (role === "BAND") {
+          await refreshBands();
           return await signInBand(username);
         } else if (role === "VENUE") {
+          await refreshVenues();
           return await signInVenue(username);
         }
       }
@@ -262,8 +273,10 @@ export function AppProvider({ children }) {
         refreshGigs(),
       ]);
       
-      // Try to auto-login after data is loaded
-      await autoLogin();
+      // Only try to auto-login if not already signed in
+      if (!currentBand && !currentVenue) {
+        await autoLogin();
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
