@@ -4,7 +4,7 @@ import "../styles/animations.css";
 import api from "../services/api"; // axios instance
 import { useAppContext } from "../context/AppContext.jsx";
 
-export default function HomePage() {
+export default function LoginPage() {
   const navigate = useNavigate();
   const { signInBand, signInVenue } = useAppContext();
 
@@ -19,7 +19,7 @@ export default function HomePage() {
     setIsLoading(true);
 
     // Clear any existing auth data first
-    localStorage.removeItem('gigbooker_auth');
+    localStorage.removeItem("gigbooker_auth");
 
     try {
       // Authenticate with backend
@@ -35,11 +35,14 @@ export default function HomePage() {
       }
 
       // Store authentication data in localStorage for session persistence
-      localStorage.setItem('gigbooker_auth', JSON.stringify({
-        username: usernameToUse,
-        role: normalizedRole,
-        loginTime: new Date().toISOString()
-      }));
+      localStorage.setItem(
+        "gigbooker_auth",
+        JSON.stringify({
+          username: usernameToUse,
+          role: normalizedRole,
+          loginTime: new Date().toISOString(),
+        })
+      );
 
       // Sync global auth state so dashboards load immediately
       let authenticated = false;
@@ -59,13 +62,15 @@ export default function HomePage() {
 
       if (!authenticated) {
         // Clear auth data if sign-in failed
-        localStorage.removeItem('gigbooker_auth');
-        setError("Login successful but could not load your account. Please try again.");
+        localStorage.removeItem("gigbooker_auth");
+        setError(
+          "Login successful but could not load your account. Please try again."
+        );
       }
     } catch (err) {
       console.error(err);
       // Clear auth data on error
-      localStorage.removeItem('gigbooker_auth');
+      localStorage.removeItem("gigbooker_auth");
       setError(
         err.response?.data?.message ||
           "Login failed. Check your username/password and try again."
@@ -76,7 +81,6 @@ export default function HomePage() {
   };
 
   return (
-    // No <Navbar /> here – clean landing page
     <div
       className="landing"
       style={{
@@ -86,12 +90,13 @@ export default function HomePage() {
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
+        background: "#020617",
       }}
     >
-      <h1 className="title" style={{ marginBottom: "0.5rem" }}>
+      <h1 className="title" style={{ marginBottom: "0.5rem", color: "#f9fafb" }}>
         GigBooking
       </h1>
-      <p className="subtitle" style={{ marginBottom: "2rem" }}>
+      <p className="subtitle" style={{ marginBottom: "2rem", color: "#cbd5f5" }}>
         Sign in to manage your gigs and bookings.
       </p>
 
@@ -110,7 +115,7 @@ export default function HomePage() {
         <div style={{ marginBottom: "1.25rem" }}>
           <label
             htmlFor="username"
-            style={{ display: "block", marginBottom: 8, fontWeight: 500 }}
+            style={{ display: "block", marginBottom: 8, fontWeight: 500, color: "#e5e7eb" }}
           >
             Username
           </label>
@@ -134,7 +139,7 @@ export default function HomePage() {
         <div style={{ marginBottom: "1.5rem" }}>
           <label
             htmlFor="password"
-            style={{ display: "block", marginBottom: 8, fontWeight: 500 }}
+            style={{ display: "block", marginBottom: 8, fontWeight: 500, color: "#e5e7eb" }}
           >
             Password
           </label>

@@ -3,6 +3,8 @@ import api from "../services/api.js";
 
 /**
  * Central app state: bands, venues, gigs, auth, and toasts.
+ * AuthController now handles /api/auth/login and /api/auth/signup,
+ * but we still sync into AppContext via signInBand/signInVenue.
  */
 
 const AppContext = createContext();
@@ -231,7 +233,7 @@ export function AppProvider({ children }) {
   const signOut = () => {
     setCurrentBand(null);
     setCurrentVenue(null);
-    localStorage.removeItem('gigbooker_auth');
+    localStorage.removeItem("gigbooker_auth");
     showToast("info", "Signed out");
   };
 
@@ -240,10 +242,10 @@ export function AppProvider({ children }) {
   // -----------------------
   const autoLogin = async () => {
     try {
-      const authData = localStorage.getItem('gigbooker_auth');
+      const authData = localStorage.getItem("gigbooker_auth");
       if (authData) {
         const { username, role } = JSON.parse(authData);
-        
+
         // Refresh the relevant data first to ensure we have the latest
         if (role === "BAND") {
           await refreshBands();
@@ -256,7 +258,7 @@ export function AppProvider({ children }) {
     } catch (err) {
       console.error("Auto-login failed:", err);
       // Clear invalid auth data
-      localStorage.removeItem('gigbooker_auth');
+      localStorage.removeItem("gigbooker_auth");
     }
     return null;
   };
@@ -267,12 +269,8 @@ export function AppProvider({ children }) {
   useEffect(() => {
     (async () => {
       // Load data first
-      await Promise.allSettled([
-        refreshBands(),
-        refreshVenues(),
-        refreshGigs(),
-      ]);
-      
+      await Promise.allSettled([refreshBands(), refreshVenues(), refreshGigs()]);
+
       // Only try to auto-login if not already signed in
       if (!currentBand && !currentVenue) {
         await autoLogin();
@@ -313,16 +311,7 @@ export function AppProvider({ children }) {
       loading,
       toast,
     }),
-    [
-      currentBand,
-      currentVenue,
-      bands,
-      venues,
-      gigs,
-      interests,
-      loading,
-      toast,
-    ]
+    [currentBand, currentVenue, bands, venues, gigs, interests, loading, toast]
   );
 
   return (

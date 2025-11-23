@@ -56,10 +56,10 @@ export default function SignupPage() {
     setError("");
     setSuccessMsg("");
 
-    const payload = role === ROLE_BAND ? bandForm : venueForm;
+    const payloadCore = role === ROLE_BAND ? bandForm : venueForm;
 
     // basic validation
-    const missing = Object.entries(payload)
+    const missing = Object.entries(payloadCore)
       .filter(([_, v]) => !v || v.trim() === "")
       .map(([k]) => k);
 
@@ -68,24 +68,35 @@ export default function SignupPage() {
       return;
     }
 
-    setIsSubmitting(true);
-    
-    // Clear any existing auth data first to prevent conflicts
-    localStorage.removeItem('gigbooker_auth');
-    
-    try {
-      const endpoint = role === ROLE_BAND ? "/api/bands" : "/api/venues";
+    const username = payloadCore.username.trim();
+    const passwordTrimmed = password.trim();
 
-      // Include password in the payload
-      const fullPayload = {
-        ...payload,
-        password: password.trim()
+    setIsSubmitting(true);
+
+    // Clear any existing auth data first to prevent conflicts
+    localStorage.removeItem("gigbooker_auth");
+
+    try {
+      // Build signup payload for /api/auth/signup
+      const signupPayload = {
+        role,
+        username,
+        password: passwordTrimmed,
+        email: payloadCore.email,
       };
 
-      const username = payload.username.trim();
+      if (role === ROLE_BAND) {
+        signupPayload.genre = bandForm.genre;
+        signupPayload.members = bandForm.members;
+        signupPayload.links = bandForm.links;
+      } else {
+        signupPayload.companyName = venueForm.companyName;
+        signupPayload.contact = venueForm.contact;
+        signupPayload.description = venueForm.description;
+      }
 
-      // 1) Create band or venue in backend (this now also creates the User for auth)
-      await api.post(endpoint, fullPayload);
+      // 1) Create the user + band/venue on backend
+      await api.post("/api/auth/signup", signupPayload);
 
       // 2) Refresh the bands/venues list to include the newly created account
       if (role === ROLE_BAND) {
@@ -103,16 +114,21 @@ export default function SignupPage() {
       }
 
       if (!authenticatedUser) {
-        setError("Account created but sign-in failed. Please try logging in manually.");
+        setError(
+          "Account created but sign-in failed. Please try logging in manually."
+        );
         return;
       }
 
       // 4) Store authentication data for session persistence
-      localStorage.setItem('gigbooker_auth', JSON.stringify({
-        username: username,
-        role: role,
-        loginTime: new Date().toISOString()
-      }));
+      localStorage.setItem(
+        "gigbooker_auth",
+        JSON.stringify({
+          username: username,
+          role: role,
+          loginTime: new Date().toISOString(),
+        })
+      );
 
       // 5) Navigate to the appropriate dashboard
       navigate(role === ROLE_BAND ? "/band" : "/venue");
@@ -124,12 +140,11 @@ export default function SignupPage() {
         "Unable to create account. Please try again.";
       setError(msg);
       // Clear auth data on error
-      localStorage.removeItem('gigbooker_auth');
+      localStorage.removeItem("gigbooker_auth");
     } finally {
       setIsSubmitting(false);
     }
   };
-
 
   const currentForm = role === ROLE_BAND ? bandForm : venueForm;
 
