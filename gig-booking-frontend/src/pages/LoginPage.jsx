@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/animations.css";
 import api from "../services/api"; // axios instance
+import { useAppContext } from "../context/AppContext.jsx";
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { signInBand, signInVenue } = useAppContext();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -20,18 +22,23 @@ export default function HomePage() {
       // Authenticate with backend
       const res = await api.post("/api/auth/login", { username, password });
       const { role, username: authenticatedUsername } = res.data;
+      const normalizedRole = (role || "").toUpperCase();
+      const usernameToUse = authenticatedUsername || username;
 
       // Store authentication data in localStorage for session persistence
       localStorage.setItem('gigbooker_auth', JSON.stringify({
         username: authenticatedUsername,
-        role: role,
+        role: normalizedRole,
         loginTime: new Date().toISOString()
       }));
 
-      if (role === "BAND") {
-        navigate("/band");
-      } else if (role === "VENUE") {
-        navigate("/venue");
+      // Sync global auth state so dashboards load immediately
+      if (normalizedRole === "BAND") {
+        const band = await signInBand(usernameToUse);
+        if (band) navigate("/band");
+      } else if (normalizedRole === "VENUE") {
+        const venue = await signInVenue(usernameToUse);
+        if (venue) navigate("/venue");
       } else {
         setError("Unknown account type. Please contact support.");
       }
